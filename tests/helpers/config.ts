@@ -10,5 +10,6 @@ export const testConfig = (over: Partial<Config> = {}): Config => ({
   whoop: { clientId: 'wc', clientSecret: 'ws' },
   google: { clientId: 'gc', clientSecret: 'gs' },
   fitbitEnabled: true,
+  whoopEnabled: true,
   ...over,
 });

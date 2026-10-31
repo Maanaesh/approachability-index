@@ -24,15 +24,17 @@ const HELP = [
 ].join('\n');
 
 const reply = (text: string, blocks?: unknown[]): CommandResponse => ({ response_type: 'ephemeral', text, ...(blocks ? { blocks } : {}) });
-const linkButton = (text: string, url: string, primary = false) => ({
-  type: 'button', text: { type: 'plain_text', text }, url, ...(primary ? { style: 'primary' } : {}),
+// Slack still sends an interaction when a link button is clicked; the open_link_ prefix lets us ack it.
+const linkButton = (actionId: string, text: string, url: string, primary = false) => ({
+  type: 'button', action_id: `open_link_${actionId}`, text: { type: 'plain_text', text }, url, ...(primary ? { style: 'primary' } : {}),
 });
 
 export function connectButtons(userId: string, deps: CommandDeps, only?: ProviderId): unknown[] {
   const { cfg } = deps;
   const u = encodeURIComponent(signUserLink(userId, cfg.slack.stateSecret));
-  const providers: ProviderId[] = only ? [only] : cfg.fitbitEnabled ? ['whoop', 'fitbit'] : ['whoop'];
-  return [{ type: 'actions', elements: providers.map((p) => linkButton(`Connect ${NAMES[p]}`, `${cfg.publicBaseUrl}/oauth/${p}/start?u=${u}`, true)) }];
+  const enabled: ProviderId[] = [...(cfg.whoopEnabled ? ['whoop' as const] : []), ...(cfg.fitbitEnabled ? ['fitbit' as const] : [])];
+  const providers = only ? [only] : enabled;
+  return [{ type: 'actions', elements: providers.map((p) => linkButton(p, `Connect ${NAMES[p]}`, `${cfg.publicBaseUrl}/oauth/${p}/start?u=${u}`, true)) }];
 }
 
 // Best effort: a revoked token or Slack hiccup must never block pausing or deleting data.
@@ -51,7 +53,7 @@ async function status(user: User, deps: CommandDeps): Promise<CommandResponse> {
   if (!user.active || !user.slackUserToken) {
     return reply('⚠️ inactive — Slack access was revoked. re-authorise Slack to get your vibe back.', [
       { type: 'section', text: { type: 'mrkdwn', text: '⚠️ inactive — Slack access was revoked. re-authorise Slack to get your vibe back.' } },
-      { type: 'actions', elements: [linkButton('Re-authorise Slack', `${deps.cfg.publicBaseUrl}/slack/install`, true)] },
+      { type: 'actions', elements: [linkButton('slack_reauth', 'Re-authorise Slack', `${deps.cfg.publicBaseUrl}/slack/install`, true)] },
     ]);
   }
   const conn = await getConnection(deps.pool, user.slackUserId, deps.cfg.tokenKey);
@@ -80,7 +82,7 @@ export async function handleCommand(text: string, ctx: { userId: string }, deps:
     if (!user?.slackUserToken) {
       return reply('first, let me set your Slack status 🔑', [
         { type: 'section', text: { type: 'mrkdwn', text: 'first, let me set your Slack status 🔑 then run `/approachability connect` again.' } },
-        { type: 'actions', elements: [linkButton('Authorize Slack', `${deps.cfg.publicBaseUrl}/slack/install`, true)] },
+        { type: 'actions', elements: [linkButton('slack_install', 'Authorize Slack', `${deps.cfg.publicBaseUrl}/slack/install`, true)] },
       ]);
     }
     return reply('pick your wearable ⌚', [{ type: 'section', text: { type: 'mrkdwn', text: 'pick your wearable ⌚ (links work for 15 minutes)' } }, ...connectButtons(ctx.userId, deps)]);
@@ -125,6 +127,10 @@ export function registerCommands(
       return;
     }
     await respond(await handleCommand(command.text, { userId: command.user_id }, deps));
+  });
+
+  app.action(/^open_link_/, async ({ ack }) => {
+    await ack();
   });
 
   app.action(/^reconnect_(whoop|fitbit)$/, async ({ ack, body, action, respond }) => {

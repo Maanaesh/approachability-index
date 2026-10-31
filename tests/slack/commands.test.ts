@@ -6,7 +6,7 @@ import { getUser, setInactive, setLastSetStatus, setSlackToken, upsertUser } fro
 import { SlackTokenRevoked } from '../../src/slack/status.js';
 import { saveConnection } from '../../src/db/connections.js';
 import { loadLibrary } from '../../src/lines/library.js';
-import { handleCommand, type CommandDeps } from '../../src/slack/commands.js';
+import { handleCommand, registerCommands, type CommandDeps } from '../../src/slack/commands.js';
 import type { Provider, ScoreResult } from '../../src/providers/types.js';
 import type { SlackStatus } from '../../src/status/decision.js';
 import { fakeFetch, json } from '../helpers/fetch.js';
@@ -52,6 +52,33 @@ describe('handleCommand', () => {
     const r = await handleCommand('connect', { userId: 'U1' }, deps().d);
     expect(buttons(r)).toMatch(/https:\/\/app\.test\/oauth\/whoop\/start\?u=U1\./);
     expect(buttons(r)).toContain('/oauth/fitbit/start');
+  });
+
+  it('connect hides WHOOP when WHOOP_ENABLED=false', async () => {
+    await connectedUser();
+    const r = await handleCommand('connect', { userId: 'U1' }, deps(undefined, testConfig({ whoopEnabled: false })).d);
+    expect(buttons(r)).not.toContain('/oauth/whoop/start');
+    expect(buttons(r)).toContain('/oauth/fitbit/start');
+  });
+
+  it('every link button has an open_link action id', async () => {
+    const authorize = await handleCommand('connect', { userId: 'U1' }, deps().d);
+    await connectedUser();
+    const connect = await handleCommand('connect', { userId: 'U1' }, deps().d);
+    const ids = [...buttons(authorize).matchAll(/"action_id":"([^"]+)"/g), ...buttons(connect).matchAll(/"action_id":"([^"]+)"/g)].map((m) => m[1]);
+    expect(ids.length).toBeGreaterThanOrEqual(3);
+    expect(ids.every((id) => id.startsWith('open_link_'))).toBe(true);
+  });
+
+  it('registerCommands acknowledges link button clicks', async () => {
+    const actions: { matcher: RegExp | string; handler: (args: any) => Promise<void> }[] = [];
+    const app = { command: vi.fn(), action: vi.fn((matcher, handler) => actions.push({ matcher, handler })) } as any;
+    registerCommands(app, deps().d);
+    const linkAction = actions.find((a) => (a.matcher instanceof RegExp ? a.matcher.test('open_link_fitbit') : a.matcher === 'open_link_fitbit'));
+    expect(linkAction).toBeDefined();
+    const ack = vi.fn(async () => {});
+    await linkAction!.handler({ ack });
+    expect(ack).toHaveBeenCalled();
   });
 
   it('connect hides Fitbit when FITBIT_ENABLED=false', async () => {

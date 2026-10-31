@@ -9,6 +9,7 @@ export type Config = {
   whoop: { clientId: string; clientSecret: string };
   google: { clientId: string; clientSecret: string };
   fitbitEnabled: boolean;
+  whoopEnabled: boolean;
   supportEmail?: string;
 };
 
@@ -26,12 +27,18 @@ const schema = z.object({
   SLACK_CLIENT_ID: required('SLACK_CLIENT_ID'),
   SLACK_CLIENT_SECRET: required('SLACK_CLIENT_SECRET'),
   SLACK_STATE_SECRET: required('SLACK_STATE_SECRET'),
-  WHOOP_CLIENT_ID: required('WHOOP_CLIENT_ID'),
-  WHOOP_CLIENT_SECRET: required('WHOOP_CLIENT_SECRET'),
+  WHOOP_CLIENT_ID: z.string().optional(),
+  WHOOP_CLIENT_SECRET: z.string().optional(),
+  WHOOP_ENABLED: z.enum(['true', 'false']).default('false'),
   GOOGLE_CLIENT_ID: required('GOOGLE_CLIENT_ID'),
   GOOGLE_CLIENT_SECRET: required('GOOGLE_CLIENT_SECRET'),
   FITBIT_ENABLED: z.enum(['true', 'false']).default('false'),
   SUPPORT_EMAIL: z.preprocess((v) => (v === '' ? undefined : v), z.string().email().optional()),
+}).superRefine((e, ctx) => {
+  if (e.WHOOP_ENABLED !== 'true') return;
+  for (const k of ['WHOOP_CLIENT_ID', 'WHOOP_CLIENT_SECRET'] as const) {
+    if (!e[k]) ctx.addIssue({ code: 'custom', path: [k], message: `${k} is required when WHOOP_ENABLED=true` });
+  }
 });
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -51,9 +58,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
       clientSecret: e.SLACK_CLIENT_SECRET,
       stateSecret: e.SLACK_STATE_SECRET,
     },
-    whoop: { clientId: e.WHOOP_CLIENT_ID, clientSecret: e.WHOOP_CLIENT_SECRET },
+    whoop: { clientId: e.WHOOP_CLIENT_ID ?? '', clientSecret: e.WHOOP_CLIENT_SECRET ?? '' },
     google: { clientId: e.GOOGLE_CLIENT_ID, clientSecret: e.GOOGLE_CLIENT_SECRET },
     fitbitEnabled: e.FITBIT_ENABLED === 'true',
+    whoopEnabled: e.WHOOP_ENABLED === 'true',
     supportEmail: e.SUPPORT_EMAIL,
   };
 }

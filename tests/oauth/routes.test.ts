@@ -59,6 +59,12 @@ describe('oauth routes', () => {
     await s.close();
   });
 
+  it('whoop start is 404 when WHOOP_ENABLED=false', async () => {
+    const s = await serve(testConfig({ whoopEnabled: false }));
+    expect((await fetch(`${s.base}/oauth/whoop/start?u=${encodeURIComponent(signUserLink('U1', 'state'))}`, { redirect: 'manual' })).status).toBe(404);
+    await s.close();
+  });
+
   it('fitbit start is 404 when FITBIT_ENABLED=false', async () => {
     const s = await serve(testConfig({ fitbitEnabled: false }));
     expect((await fetch(`${s.base}/oauth/fitbit/start?u=${encodeURIComponent(signUserLink('U1', 'state'))}`, { redirect: 'manual' })).status).toBe(404);

@@ -33,6 +33,18 @@ describe('loadConfig', () => {
     expect(cfg.tokenKey.length).toBe(32);
   });
 
+  it('WHOOP is disabled by default and its credentials are optional then', () => {
+    const { WHOOP_CLIENT_ID, WHOOP_CLIENT_SECRET, ...env } = base;
+    const cfg = loadConfig(env);
+    expect(cfg.whoopEnabled).toBe(false);
+  });
+
+  it('WHOOP credentials are required when WHOOP_ENABLED=true', () => {
+    const { WHOOP_CLIENT_ID, ...env } = base;
+    expect(() => loadConfig({ ...env, WHOOP_ENABLED: 'true' })).toThrow(/WHOOP_CLIENT_ID/);
+    expect(loadConfig({ ...base, WHOOP_ENABLED: 'true' }).whoopEnabled).toBe(true);
+  });
+
   it('treats an empty optional SUPPORT_EMAIL as unset', () => {
     expect(loadConfig({ ...base, SUPPORT_EMAIL: '' }).supportEmail).toBeUndefined();
   });

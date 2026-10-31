@@ -46,7 +46,7 @@ const page = (title: string, body: string) =>
 export function oauthRouter(deps: OAuthDeps): Router {
   const router = Router();
   const providerFor = (name: string): Provider | null => {
-    if (name === 'whoop') return deps.providers.whoop;
+    if (name === 'whoop' && deps.cfg.whoopEnabled) return deps.providers.whoop;
     if (name === 'fitbit' && deps.cfg.fitbitEnabled) return deps.providers.fitbit;
     return null;
   };
