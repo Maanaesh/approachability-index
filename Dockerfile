@@ -14,6 +14,7 @@ RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
 COPY migrations ./migrations
 COPY content ./content
+COPY assets ./assets
 EXPOSE 3000
 USER node
 CMD ["node", "dist/src/index.js"]

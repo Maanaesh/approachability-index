@@ -32,6 +32,15 @@ describe('public pages', () => {
     }
   });
 
+  it('serves the logo and uses it as favicon and header', async () => {
+    const logo = await get('/logo.svg');
+    expect(logo.status).toBe(200);
+    expect(logo.type).toContain('image/svg+xml');
+    const home = await get('/');
+    expect(home.body).toContain('rel="icon" href="/logo.svg"');
+    expect(home.body).toContain('<img src="/logo.svg"');
+  });
+
   it('terms page exists', async () => {
     const r = await get('/terms');
     expect(r.status).toBe(200);

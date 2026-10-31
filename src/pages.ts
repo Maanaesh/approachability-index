@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import { Router } from 'express';
 import type { Config } from './config.js';
 
@@ -6,15 +7,20 @@ const UPDATED = '2026-10-31';
 function layout(title: string, body: string): string {
   return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${title}</title>
+<link rel="icon" href="/logo.svg" type="image/svg+xml">
 <style>body{font-family:system-ui,sans-serif;max-width:42rem;margin:3rem auto;padding:0 1.25rem;line-height:1.6;color:#1d1c1d}
-h1{line-height:1.2}a.btn{display:inline-block;background:#4a154b;color:#fff;padding:.7rem 1.2rem;border-radius:.5rem;text-decoration:none;font-weight:600}
+h1{line-height:1.2}header img{width:56px;height:56px;border-radius:12px}a.btn{display:inline-block;background:#4a154b;color:#fff;padding:.7rem 1.2rem;border-radius:.5rem;text-decoration:none;font-weight:600}
 footer{margin-top:3rem;font-size:.9rem;color:#616061}</style>
-<body>${body}<footer><a href="/">Home</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></footer></body></html>`;
+<body><header><a href="/"><img src="/logo.svg" alt="Approachability logo"></a></header>${body}<footer><a href="/">Home</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></footer></body></html>`;
 }
 
 export function pagesRouter(cfg: Config): Router {
   const router = Router();
   const contact = cfg.supportEmail ? `<a href="mailto:${cfg.supportEmail}">${cfg.supportEmail}</a>` : 'the person who installed this app in your workspace';
+
+  router.get('/logo.svg', (_req, res) => {
+    res.type('image/svg+xml').sendFile(join(process.cwd(), 'assets', 'logo', 'logo.svg'));
+  });
 
   router.get('/', (_req, res) => {
     res.type('html').send(layout('Approachability', `
