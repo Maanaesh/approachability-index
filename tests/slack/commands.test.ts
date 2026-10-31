@@ -2,7 +2,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 import type pg from 'pg';
 import { testDb, testKey } from '../helpers/db.js';
 import { testConfig } from '../helpers/config.js';
-import { getUser, setLastSetStatus, setSlackToken, upsertUser } from '../../src/db/users.js';
+import { getUser, setInactive, setLastSetStatus, setSlackToken, upsertUser } from '../../src/db/users.js';
+import { SlackTokenRevoked } from '../../src/slack/status.js';
 import { saveConnection } from '../../src/db/connections.js';
 import { loadLibrary } from '../../src/lines/library.js';
 import { handleCommand, type CommandDeps } from '../../src/slack/commands.js';
@@ -100,6 +101,31 @@ describe('handleCommand', () => {
     expect(x.fetchFn.calls.some((c) => c.url.href.startsWith('https://oauth2.googleapis.com/revoke'))).toBe(true);
     expect((await db.pool.query('SELECT count(*)::int AS n FROM users')).rows[0].n).toBe(0);
     expect(r.text).toMatch(/disconnected/i);
+  });
+
+  it('disconnect still deletes everything when Slack rejects the token', async () => {
+    await connectedUser('fitbit');
+    await setLastSetStatus(db.pool, 'U1', { emoji: 'sparkles', text: 'ours' });
+    const x = deps();
+    x.slack.get.mockRejectedValueOnce(new SlackTokenRevoked('token_revoked'));
+    const r = await handleCommand('disconnect', { userId: 'U1' }, x.d);
+    expect(r.text).toMatch(/disconnected/i);
+    expect((await db.pool.query('SELECT count(*)::int AS n FROM provider_connections')).rows[0].n).toBe(0);
+  });
+
+  it('pause still pauses when Slack errors', async () => {
+    await connectedUser();
+    await setLastSetStatus(db.pool, 'U1', { emoji: 'sparkles', text: 'ours' });
+    const x = deps();
+    x.slack.get.mockRejectedValueOnce(new Error('ratelimited'));
+    await handleCommand('pause', { userId: 'U1' }, x.d);
+    expect((await getUser(db.pool, 'U1', testKey))?.paused).toBe(true);
+  });
+
+  it('status tells an inactive user to re-authorise Slack', async () => {
+    await connectedUser();
+    await setInactive(db.pool, 'U1');
+    expect((await handleCommand('status', { userId: 'U1' }, deps().d)).text).toMatch(/re-authori[sz]e/i);
   });
 
   it('unknown subcommands show help', async () => {

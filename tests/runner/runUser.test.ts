@@ -8,7 +8,8 @@ import { getRun } from '../../src/db/runs.js';
 import { loadLibrary } from '../../src/lines/library.js';
 import { runUser, type RunDeps } from '../../src/runner/runUser.js';
 import { ReauthRequired, type Provider, type ScoreResult } from '../../src/providers/types.js';
-import { SlackTokenRevoked, type SlackStatusClient } from '../../src/slack/status.js';
+import { InvalidStatusEmoji, SlackTokenRevoked, type SlackStatusClient } from '../../src/slack/status.js';
+import { getBag } from '../../src/db/bags.js';
 import { endOfLocalDay } from '../../src/schedule.js';
 import type { SlackStatus } from '../../src/status/decision.js';
 
@@ -164,6 +165,43 @@ describe('runUser', () => {
     const d = deps(slack, { whoop: fakeProvider('whoop', () => ({ score: 72, reason: 'ok' })) });
     expect(await runUser(await user(), local('2026-11-02', '07:00'), d)).toBe('error');
     expect((await user()).active).toBe(false);
+    expect((await user()).slackUserToken).toBeNull();
+  });
+
+  it('a provider network error waits during polling and falls back after 11:00', async () => {
+    await connect('whoop');
+    const d = deps(fakeSlack(), { whoop: fakeProvider('whoop', () => { throw new TypeError('fetch failed'); }) });
+    expect(await runUser(await user(), local('2026-11-02', '07:00'), d)).toBe('waiting');
+    expect(await runUser(await user(), local('2026-11-02', '11:05'), d)).toBe('fallback');
+  });
+
+  it('throttles retries to every 30 minutes after 11:00 too', async () => {
+    await connect('whoop');
+    const slack = fakeSlack();
+    slack.get.mockRejectedValueOnce(new Error('socket hang up'));
+    const d = deps(slack, { whoop: fakeProvider('whoop', () => ({ score: null, reason: 'no_data' })) });
+    expect(await runUser(await user(), local('2026-11-02', '11:05'), d)).toBe('error');
+    expect(await runUser(await user(), local('2026-11-02', '11:10'), d)).toBe('not_due');
+    expect(await runUser(await user(), local('2026-11-02', '11:36'), d)).toBe('fallback');
+  });
+
+  it('does not advance the shuffle bag when Slack fails to set the status', async () => {
+    await connect('whoop');
+    const slack = fakeSlack();
+    slack.set.mockRejectedValueOnce(new Error('internal_error'));
+    const d = deps(slack, { whoop: fakeProvider('whoop', () => ({ score: 72, reason: 'ok' })) });
+    expect(await runUser(await user(), local('2026-11-02', '07:00'), d)).toBe('error');
+    expect(await getBag(db.pool, U, 'high')).toBeNull();
+  });
+
+  it('retries with a pool emoji when Slack rejects the emoji', async () => {
+    await connect('whoop');
+    const slack = fakeSlack();
+    slack.set.mockRejectedValueOnce(new InvalidStatusEmoji('profile_status_set_failed_not_valid_emoji'));
+    const d = deps(slack, { whoop: fakeProvider('whoop', () => ({ score: 72, reason: 'ok' })) });
+    expect(await runUser(await user(), local('2026-11-02', '07:00'), d)).toBe('set');
+    expect(slack.set).toHaveBeenCalledTimes(2);
+    expect(lib.emojiPools.high).toContain(slack.set.mock.calls[1][1].emoji);
   });
 
   it('does not record an outcome on a transient error, so the next tick retries', async () => {

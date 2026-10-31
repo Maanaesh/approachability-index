@@ -35,14 +35,25 @@ export function connectButtons(userId: string, deps: CommandDeps, only?: Provide
   return [{ type: 'actions', elements: providers.map((p) => linkButton(`Connect ${NAMES[p]}`, `${cfg.publicBaseUrl}/oauth/${p}/start?u=${u}`, true)) }];
 }
 
+// Best effort: a revoked token or Slack hiccup must never block pausing or deleting data.
 async function clearIfOurs(user: User, deps: CommandDeps): Promise<void> {
   if (!user.slackUserToken || !user.lastSetStatus) return;
-  const current = await deps.slack.get(user.slackUserToken);
-  if (canWriteStatus(current, user.lastSetStatus)) await deps.slack.clear(user.slackUserToken);
-  await setLastSetStatus(deps.pool, user.slackUserId, null);
+  try {
+    const current = await deps.slack.get(user.slackUserToken);
+    if (canWriteStatus(current, user.lastSetStatus)) await deps.slack.clear(user.slackUserToken);
+    await setLastSetStatus(deps.pool, user.slackUserId, null);
+  } catch {
+    // status expires at 23:59 local anyway
+  }
 }
 
 async function status(user: User, deps: CommandDeps): Promise<CommandResponse> {
+  if (!user.active || !user.slackUserToken) {
+    return reply('⚠️ inactive — Slack access was revoked. re-authorise Slack to get your vibe back.', [
+      { type: 'section', text: { type: 'mrkdwn', text: '⚠️ inactive — Slack access was revoked. re-authorise Slack to get your vibe back.' } },
+      { type: 'actions', elements: [linkButton('Re-authorise Slack', `${deps.cfg.publicBaseUrl}/slack/install`, true)] },
+    ]);
+  }
   const conn = await getConnection(deps.pool, user.slackUserId, deps.cfg.tokenKey);
   if (!conn) return reply('not connected yet — run `/approachability connect` 🔌');
   const provider = deps.providers[conn.provider];

@@ -5,15 +5,15 @@ import { getBag, saveBag } from '../db/bags.js';
 import { getConnection } from '../db/connections.js';
 import { getPrefs, type Prefs } from '../db/prefs.js';
 import { finishRun, getRun, recordAttempt } from '../db/runs.js';
-import { setInactive, setLastSetStatus, setReconnectNotified, type User } from '../db/users.js';
+import { clearSlackToken, setInactive, setLastSetStatus, setReconnectNotified, type User } from '../db/users.js';
 import { linesFor, pickEmoji, type Library, type LineBand } from '../lines/library.js';
-import { drawFromBag } from '../lines/shuffle.js';
+import { drawFromBag, type Bag } from '../lines/shuffle.js';
 import type { Logger } from '../log.js';
 import { needsReconnectReminder } from '../providers/fitbit.js';
 import { withFreshToken } from '../providers/tokens.js';
-import type { Provider, ProviderId, ScoreResult } from '../providers/types.js';
+import { ReauthRequired, type Provider, type ProviderId, type ScoreResult } from '../providers/types.js';
 import { endOfLocalDay, isPollDue, schedulePhase } from '../schedule.js';
-import { SlackTokenRevoked, type SlackStatusClient } from '../slack/status.js';
+import { InvalidStatusEmoji, SlackTokenRevoked, type SlackStatusClient } from '../slack/status.js';
 import { canWriteStatus, type SlackStatus } from '../status/decision.js';
 import { reconnectMessage } from './copy.js';
 
@@ -25,6 +25,7 @@ export type RunDeps = {
   rng: () => number;
   log: Logger;
   cfg: Config;
+  lookupTz?: (slackUserId: string) => Promise<string>;
 };
 
 export type RunResult = 'set' | 'skipped_manual' | 'fallback' | 'error' | 'waiting' | 'not_due';
@@ -33,7 +34,10 @@ export type RunResult = 'set' | 'skipped_manual' | 'fallback' | 'error' | 'waiti
 const FINAL_REASONS = new Set(['unscorable', 'reauth_required', 'insufficient_history']);
 const CUSTOM_PREFIX = 'custom:';
 
-async function pickStatus(deps: RunDeps, user: User, prefs: Prefs, band: Band | null): Promise<SlackStatus> {
+type Picked = { status: SlackStatus; tone: LineBand; bagKey: string; bag: Bag };
+
+// Draws the next line but does not persist the bag; the caller saves it only once Slack accepted the status.
+async function pickStatus(deps: RunDeps, user: User, prefs: Prefs, band: Band | null): Promise<Picked> {
   const { library: lib } = deps;
   const tone: LineBand = band?.tone ?? 'fallback';
   const bagKey = band?.key ?? FALLBACK.key;
@@ -43,14 +47,13 @@ async function pickStatus(deps: RunDeps, user: User, prefs: Prefs, band: Band | 
   const pool = [...libraryLines.map((l) => l.id), ...custom.map((l) => `${CUSTOM_PREFIX}${l.id}`)];
 
   const { lineId, bag } = drawFromBag(await getBag(deps.pool, user.slackUserId, bagKey), pool, deps.rng);
-  await saveBag(deps.pool, user.slackUserId, bagKey, bag);
 
   if (lineId.startsWith(CUSTOM_PREFIX)) {
     const line = custom.find((l) => `${CUSTOM_PREFIX}${l.id}` === lineId)!;
-    return { emoji: band?.emoji ?? FALLBACK.emoji, text: line.text };
+    return { status: { emoji: band?.emoji ?? FALLBACK.emoji, text: line.text }, tone, bagKey, bag };
   }
   const line = libraryLines.find((l) => l.id === lineId)!;
-  return { emoji: pickEmoji(line, lib, deps.rng), text: line.text };
+  return { status: { emoji: pickEmoji(line, lib, deps.rng), text: line.text }, tone, bagKey, bag };
 }
 
 export async function runUser(user: User, now: Date, deps: RunDeps): Promise<RunResult> {
@@ -59,7 +62,7 @@ export async function runUser(user: User, now: Date, deps: RunDeps): Promise<Run
   if (phase === 'before') return 'not_due';
   const run = await getRun(deps.pool, id, localDate);
   if (run?.outcome) return 'not_due';
-  if (phase === 'polling' && !isPollDue(now, run?.lastAttemptAt ?? null)) return 'not_due';
+  if (!isPollDue(now, run?.lastAttemptAt ?? null)) return 'not_due';
 
   const conn = await getConnection(deps.pool, id, deps.cfg.tokenKey);
   if (!conn || !user.slackUserToken) return 'not_due';
@@ -81,10 +84,17 @@ export async function runUser(user: User, now: Date, deps: RunDeps): Promise<Run
     };
     if (conn.provider === 'fitbit' && needsReconnectReminder(conn.issuedAt, now)) await sendReconnect();
 
-    const res = await withFreshToken(deps.pool, id, provider, deps.cfg.tokenKey, (token) =>
-      provider.getTodayScore(token, { userId: id, localDate, tz: user.tz }),
-    );
-    const result: ScoreResult = 'reauth' in res ? { score: null, reason: 'reauth_required' } : res;
+    let result: ScoreResult;
+    try {
+      const res = await withFreshToken(deps.pool, id, provider, deps.cfg.tokenKey, (token) =>
+        provider.getTodayScore(token, { userId: id, localDate, tz: user.tz }),
+      );
+      result = 'reauth' in res ? { score: null, reason: 'reauth_required' } : res;
+    } catch (err) {
+      // Network failures and token-endpoint outages: same as a provider 5xx.
+      if (err instanceof ReauthRequired) throw err;
+      result = { score: null, reason: 'temporary_error' };
+    }
     if (result.reason === 'reauth_required') await sendReconnect();
 
     const prefs = await getPrefs(deps.pool, id, deps.library.packs.map((p) => p.id));
@@ -103,8 +113,18 @@ export async function runUser(user: User, now: Date, deps: RunDeps): Promise<Run
       return 'skipped_manual';
     }
 
-    const status = await pickStatus(deps, user, prefs, band);
-    await deps.slack.set(user.slackUserToken, status, endOfLocalDay(now, user.tz));
+    const picked = await pickStatus(deps, user, prefs, band);
+    let status = picked.status;
+    const expiration = endOfLocalDay(now, user.tz);
+    try {
+      await deps.slack.set(user.slackUserToken, status, expiration);
+    } catch (err) {
+      if (!(err instanceof InvalidStatusEmoji)) throw err;
+      const pool = deps.library.emojiPools[picked.tone];
+      status = { ...status, emoji: pool[Math.floor(deps.rng() * pool.length)] };
+      await deps.slack.set(user.slackUserToken, status, expiration);
+    }
+    await saveBag(deps.pool, id, picked.bagKey, picked.bag);
     await setLastSetStatus(deps.pool, id, status);
     const outcome = band ? 'set' : 'fallback';
     await finishRun(deps.pool, id, localDate, outcome, band?.key ?? FALLBACK.key);
@@ -113,6 +133,7 @@ export async function runUser(user: User, now: Date, deps: RunDeps): Promise<Run
   } catch (err) {
     if (err instanceof SlackTokenRevoked) {
       await setInactive(deps.pool, id);
+      await clearSlackToken(deps.pool, id);
       await finishRun(deps.pool, id, localDate, 'error', null);
       log('slack_token_revoked', { outcome: 'error' });
       return 'error';

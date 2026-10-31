@@ -27,8 +27,26 @@ beforeEach(async () => {
   }
 });
 
+describe('tick timezone refresh', () => {
+  it('refreshes a stale timezone before running, at most every 12 hours, keeping it on lookup failure', async () => {
+    vi.mocked(runUser).mockClear();
+    const lookupTz = vi.fn(async (id: string) => {
+      if (id === 'U1') throw new Error('users.info failed');
+      return 'Asia/Kolkata';
+    });
+    const deps = { pool: db.pool, cfg: testConfig(), log: { info: () => {} }, lookupTz } as unknown as RunDeps;
+    await tick(new Date('2026-11-02T07:00:00Z'), deps);
+    const tzOf = (id: string) => vi.mocked(runUser).mock.calls.find((c) => c[0].slackUserId === id)![0].tz;
+    expect(tzOf('U2')).toBe('Asia/Kolkata');
+    expect(tzOf('U1')).toBe('UTC');
+    await tick(new Date('2026-11-02T08:00:00Z'), deps);
+    expect(lookupTz).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe('tick', () => {
   it('runs every schedulable user and isolates failures', async () => {
+    vi.mocked(runUser).mockClear();
     const logs: string[] = [];
     const deps = { pool: db.pool, cfg: testConfig(), log: { info: (e: string) => logs.push(e) } } as unknown as RunDeps;
     await tick(new Date('2026-11-02T07:00:00Z'), deps);

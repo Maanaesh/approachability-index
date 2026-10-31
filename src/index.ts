@@ -42,6 +42,13 @@ const deps: RunDeps & { providers: { whoop: ReturnType<typeof whoopProvider>; fi
   library: loadLibrary(),
   rng: Math.random,
   providers: { whoop: whoopProvider(cfg), fitbit: fitbitProvider(cfg, { pool }) },
+  lookupTz: async (userId) => {
+    const token = await getBotToken(pool, cfg.tokenKey);
+    if (!token) throw new Error('app not installed yet');
+    const tz = (await new WebClient(token).users.info({ user: userId })).user?.tz;
+    if (!tz) throw new Error('no tz');
+    return tz;
+  },
 };
 
 const { app } = buildApp(deps);

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { slackStatusClient, SlackTokenRevoked } from '../../src/slack/status.js';
+import { InvalidStatusEmoji, slackStatusClient, SlackTokenRevoked } from '../../src/slack/status.js';
 
 function fakeClient(over: Record<string, any> = {}) {
   return {
@@ -37,6 +37,12 @@ describe('slackStatusClient', () => {
     const c = fakeClient();
     c.users.profile.set.mockRejectedValueOnce(slackError('ratelimited'));
     await expect(slackStatusClient(c).set('x', { emoji: 'a', text: 'b' }, 1)).rejects.not.toBeInstanceOf(SlackTokenRevoked);
+  });
+
+  it('an invalid emoji throws InvalidStatusEmoji', async () => {
+    const c = fakeClient();
+    c.users.profile.set.mockRejectedValueOnce(slackError('profile_status_set_failed_not_valid_emoji'));
+    await expect(slackStatusClient(c).set('x', { emoji: 'gone', text: 'b' }, 1)).rejects.toBeInstanceOf(InvalidStatusEmoji);
   });
 
   it('DMs the user via chat.postMessage', async () => {

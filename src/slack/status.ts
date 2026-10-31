@@ -12,6 +12,10 @@ export class SlackTokenRevoked extends Error {
   name = 'SlackTokenRevoked';
 }
 
+export class InvalidStatusEmoji extends Error {
+  name = 'InvalidStatusEmoji';
+}
+
 const REVOKED = new Set(['token_revoked', 'invalid_auth', 'account_inactive', 'not_authed']);
 
 async function guard<T>(call: () => Promise<T>): Promise<T> {
@@ -19,6 +23,7 @@ async function guard<T>(call: () => Promise<T>): Promise<T> {
     return await call();
   } catch (err: any) {
     if (REVOKED.has(err?.data?.error)) throw new SlackTokenRevoked(err.data.error);
+    if (err?.data?.error === 'profile_status_set_failed_not_valid_emoji') throw new InvalidStatusEmoji(err.data.error);
     throw err;
   }
 }

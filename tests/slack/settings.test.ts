@@ -2,7 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type pg from 'pg';
 import { DEFAULT_BANDS } from '../../src/bands.js';
 import { loadLibrary } from '../../src/lines/library.js';
-import { addBand, buildSettingsView, parseSettingsSubmission, removeBand } from '../../src/slack/settings.js';
+import { addBand, buildSettingsView, parseSettingsSubmission, removeBand, saveSettings } from '../../src/slack/settings.js';
 import { getBag, saveBag } from '../../src/db/bags.js';
 import { getPrefs, savePrefs } from '../../src/db/prefs.js';
 import { upsertUser } from '../../src/db/users.js';
@@ -115,6 +115,12 @@ describe('saving settings', () => {
   beforeEach(async () => {
     await db.pool.query('TRUNCATE users CASCADE');
     await upsertUser(db.pool, { slackUserId: 'U1', teamId: 'T', tz: 'UTC' });
+  });
+
+  it('saveSettings refuses (and saves nothing) for a user who has not connected yet', async () => {
+    expect(await saveSettings(db.pool, 'NOPE', defaults)).toBe(false);
+    expect(await saveSettings(db.pool, 'U1', { ...defaults, packIds: ['tech'] })).toBe(true);
+    expect((await getPrefs(db.pool, 'U1', allPacks)).packIds).toEqual(['tech']);
   });
 
   it('a valid submission saves and resets shuffle bags', async () => {

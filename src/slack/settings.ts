@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { createRequire } from 'node:module';
 import type { App } from '@slack/bolt';
+import type pg from 'pg';
 import { FALLBACK, MAX_BANDS, MIN_BANDS, normalizeEmoji, type Band, type Tone } from '../bands.js';
 import { getPrefs, savePrefs, type CustomLine, type Prefs } from '../db/prefs.js';
 import type { Library } from '../lines/library.js';
@@ -154,6 +155,27 @@ async function workspaceEmoji(client: any): Promise<Set<string>> {
   }
 }
 
+// Atomic, and refuses users who never connected (no users row) instead of failing on the foreign key.
+export async function saveSettings(pool: pg.Pool, userId: string, prefs: Prefs): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const exists = await client.query('SELECT 1 FROM users WHERE slack_user_id = $1 FOR UPDATE', [userId]);
+    if (!exists.rowCount) {
+      await client.query('ROLLBACK');
+      return false;
+    }
+    await savePrefs(client, userId, prefs);
+    await client.query('COMMIT');
+    return true;
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 export function registerSettings(app: App, deps: RunDeps) {
   const allPacks = () => deps.library.packs.map((p) => p.id);
 
@@ -166,8 +188,10 @@ export function registerSettings(app: App, deps: RunDeps) {
     const meta = JSON.parse(view.private_metadata) as Meta;
     const result = parseSettingsSubmission(view.state.values as Values, meta, { lib: deps.library, userId: body.user.id, workspaceEmoji: await workspaceEmoji(client) });
     if (!result.ok) return void (await ack({ response_action: 'errors', errors: result.errors }));
+    if (!(await saveSettings(deps.pool, body.user.id, result.prefs))) {
+      return void (await ack({ response_action: 'errors', errors: { packs: 'run `/approachability connect` first, then come back here' } }));
+    }
     await ack();
-    await savePrefs(deps.pool, body.user.id, result.prefs);
   });
 
   for (const actionId of ['add_band', 'remove_band'] as const) {
