@@ -1,0 +1,3 @@
+{ "dataPoints": [
+  { "name": "users/me/dataTypes/daily-resting-heart-rate/dataPoints/2", "dailyRestingHeartRate": { "date": { "year": 2026, "month": 11, "day": 2 }, "beatsPerMinute": "57", "dailyRestingHeartRateMetadata": { "calculationMethod": "WITH_SLEEP" } } }
+], "nextPageToken": "rhr2" }

@@ -124,6 +124,8 @@ describe('metrics', () => {
     ]);
     await upsertMetrics(db.pool, U, [{ date: '2026-10-30', hrvMs: 55, rhrBpm: 58, minutesAsleep: 430 }]);
     expect(await getMetrics(db.pool, U, '2026-10-01', '2026-10-31')).toEqual([{ date: '2026-10-30', hrvMs: 55, rhrBpm: 58, minutesAsleep: 430 }]);
+    await upsertMetrics(db.pool, U, [{ date: '2026-10-30', hrvMs: null, rhrBpm: null, minutesAsleep: 440 }]);
+    expect((await getMetrics(db.pool, U, '2026-10-30', '2026-10-30'))[0]).toEqual({ date: '2026-10-30', hrvMs: 55, rhrBpm: 58, minutesAsleep: 440 });
     await pruneMetrics(db.pool, '2026-10-01');
     expect(await getMetrics(db.pool, U, '2026-01-01', '2026-12-31')).toHaveLength(1);
   });

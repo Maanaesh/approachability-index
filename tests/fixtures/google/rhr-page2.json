@@ -1,0 +1,3 @@
+{ "dataPoints": [
+  { "name": "users/me/dataTypes/daily-resting-heart-rate/dataPoints/3", "dailyRestingHeartRate": { "date": "2026-11-01", "beatsPerMinute": "60" } }
+], "nextPageToken": "" }

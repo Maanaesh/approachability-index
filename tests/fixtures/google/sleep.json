@@ -1,0 +1,8 @@
+{ "dataPoints": [
+  { "name": "users/me/dataTypes/sleep/dataPoints/4", "sleep": {
+      "interval": { "startTime": "2026-11-01T17:30:00Z", "endTime": "2026-11-02T01:30:00Z", "civilEndTime": { "date": { "year": 2026, "month": 11, "day": 2 }, "time": { "hours": 7 } } },
+      "type": "STAGES", "metadata": { "mainSleep": true, "nap": false }, "summary": { "minutesAsleep": 420, "minutesAwake": 30 } } },
+  { "name": "users/me/dataTypes/sleep/dataPoints/5", "sleep": {
+      "interval": { "startTime": "2026-11-02T08:00:00Z", "endTime": "2026-11-02T08:40:00Z", "civilEndTime": { "date": { "year": 2026, "month": 11, "day": 2 } } },
+      "type": "CLASSIC", "metadata": { "mainSleep": false, "nap": true }, "summary": { "minutesAsleep": 35 } } }
+], "nextPageToken": "" }
