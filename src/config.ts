@@ -31,7 +31,7 @@ const schema = z.object({
   GOOGLE_CLIENT_ID: required('GOOGLE_CLIENT_ID'),
   GOOGLE_CLIENT_SECRET: required('GOOGLE_CLIENT_SECRET'),
   FITBIT_ENABLED: z.enum(['true', 'false']).default('false'),
-  SUPPORT_EMAIL: z.string().email().optional(),
+  SUPPORT_EMAIL: z.preprocess((v) => (v === '' ? undefined : v), z.string().email().optional()),
 });
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {

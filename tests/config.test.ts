@@ -33,6 +33,10 @@ describe('loadConfig', () => {
     expect(cfg.tokenKey.length).toBe(32);
   });
 
+  it('treats an empty optional SUPPORT_EMAIL as unset', () => {
+    expect(loadConfig({ ...base, SUPPORT_EMAIL: '' }).supportEmail).toBeUndefined();
+  });
+
   it('reads FITBIT_ENABLED=true', () => {
     expect(loadConfig({ ...base, FITBIT_ENABLED: 'true' }).fitbitEnabled).toBe(true);
   });
