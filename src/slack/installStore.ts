@@ -5,8 +5,13 @@ import { setSlackToken, upsertUser } from '../db/users.js';
 
 type Deps = { pool: pg.Pool; key: Buffer; lookupTz: (botToken: string, userId: string) => Promise<string> };
 
-export async function getBotToken(pool: pg.Pool, key: Buffer): Promise<string | null> {
-  const r = await pool.query('SELECT bot_token_enc FROM workspace LIMIT 1');
+export async function getBotToken(pool: pg.Pool, key: Buffer, teamId: string): Promise<string | null> {
+  const r = await pool.query('SELECT bot_token_enc FROM workspace WHERE team_id = $1', [teamId]);
+  return r.rows[0] ? decrypt(r.rows[0].bot_token_enc, key) : null;
+}
+
+export async function getBotTokenForUser(pool: pg.Pool, key: Buffer, slackUserId: string): Promise<string | null> {
+  const r = await pool.query('SELECT w.bot_token_enc FROM users u JOIN workspace w USING (team_id) WHERE u.slack_user_id = $1', [slackUserId]);
   return r.rows[0] ? decrypt(r.rows[0].bot_token_enc, key) : null;
 }
 
@@ -23,7 +28,7 @@ export function installationStore({ pool, key, lookupTz }: Deps): InstallationSt
         );
       }
       if (installation.user.token) {
-        const botToken = installation.bot?.token ?? (await getBotToken(pool, key));
+        const botToken = installation.bot?.token ?? (await getBotToken(pool, key, teamId));
         const tz = botToken ? await lookupTz(botToken, installation.user.id).catch(() => 'UTC') : 'UTC';
         await upsertUser(pool, { slackUserId: installation.user.id, teamId, tz });
         await setSlackToken(pool, installation.user.id, installation.user.token, key);

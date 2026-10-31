@@ -24,7 +24,7 @@ describe('installationStore', () => {
     await store.storeInstallation(installation);
     expect(lookupTz).toHaveBeenCalledWith('xoxb-bot', 'U1');
     expect(await getUser(db.pool, 'U1', testKey)).toMatchObject({ tz: 'Asia/Kolkata', slackUserToken: 'xoxp-user', teamId: 'T1' });
-    expect(await getBotToken(db.pool, testKey)).toBe('xoxb-bot');
+    expect(await getBotToken(db.pool, testKey, 'T1')).toBe('xoxb-bot');
     const fetched = await store.fetchInstallation({ teamId: 'T1', isEnterpriseInstall: false, enterpriseId: undefined });
     expect(fetched.bot?.token).toBe('xoxb-bot');
     expect(fetched.team?.id).toBe('T1');
@@ -34,7 +34,7 @@ describe('installationStore', () => {
     const store = installationStore({ pool: db.pool, key: testKey, lookupTz: async () => 'UTC' });
     await store.storeInstallation(installation);
     await store.storeInstallation({ ...installation, user: { ...installation.user, id: 'U2', token: 'xoxp-2' }, bot: undefined });
-    expect(await getBotToken(db.pool, testKey)).toBe('xoxb-bot');
+    expect(await getBotToken(db.pool, testKey, 'T1')).toBe('xoxb-bot');
     expect((await getUser(db.pool, 'U2', testKey))?.slackUserToken).toBe('xoxp-2');
   });
 });

@@ -3,7 +3,9 @@ import { WebClient } from '@slack/web-api';
 import type { RunDeps } from './runner/runUser.js';
 import { oauthRouter, type OAuthDeps } from './oauth/routes.js';
 import { registerCommands } from './slack/commands.js';
+import { pagesRouter } from './pages.js';
 import { installationStore } from './slack/installStore.js';
+import { registerLifecycle } from './slack/lifecycle.js';
 import { registerSettings } from './slack/settings.js';
 
 const { App, ExpressReceiver } = bolt;
@@ -29,9 +31,11 @@ export function buildApp(deps: AppDeps) {
     }),
   });
   receiver.router.use(oauthRouter({ pool, cfg, providers: deps.providers }));
+  receiver.router.use(pagesRouter(cfg));
   receiver.router.get('/healthz', (_req, res) => void res.send('ok'));
   const app = new App({ receiver });
   const commandDeps = { ...deps, revokeSlackToken: async (token: string) => void (await new WebClient(token).auth.revoke()) };
   registerCommands(app, commandDeps, registerSettings(app, deps));
+  registerLifecycle(app, pool);
   return { app, receiver, commandDeps };
 }

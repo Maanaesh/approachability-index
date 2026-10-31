@@ -3,6 +3,10 @@ display_information:
   description: Sets your Slack status to today's vibe, based on your recovery. Only the vibe, never the score.
   background_color: "#2c2d30"
 features:
+  app_home:
+    home_tab_enabled: false
+    messages_tab_enabled: true
+    messages_tab_read_only_enabled: true
   bot_user:
     display_name: approachability
     always_online: true
@@ -25,6 +29,11 @@ oauth_config:
       - users:read
       - emoji:read
 settings:
+  event_subscriptions:
+    request_url: https://YOUR_PUBLIC_BASE_URL/slack/events
+    bot_events:
+      - app_uninstalled
+      - tokens_revoked
   interactivity:
     is_enabled: true
     request_url: https://YOUR_PUBLIC_BASE_URL/slack/events

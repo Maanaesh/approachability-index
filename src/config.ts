@@ -9,6 +9,7 @@ export type Config = {
   whoop: { clientId: string; clientSecret: string };
   google: { clientId: string; clientSecret: string };
   fitbitEnabled: boolean;
+  supportEmail?: string;
 };
 
 const required = (name: string) => z.string({ error: `${name} is required` }).min(1, `${name} is required`);
@@ -30,6 +31,7 @@ const schema = z.object({
   GOOGLE_CLIENT_ID: required('GOOGLE_CLIENT_ID'),
   GOOGLE_CLIENT_SECRET: required('GOOGLE_CLIENT_SECRET'),
   FITBIT_ENABLED: z.enum(['true', 'false']).default('false'),
+  SUPPORT_EMAIL: z.string().email().optional(),
 });
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -52,5 +54,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     whoop: { clientId: e.WHOOP_CLIENT_ID, clientSecret: e.WHOOP_CLIENT_SECRET },
     google: { clientId: e.GOOGLE_CLIENT_ID, clientSecret: e.GOOGLE_CLIENT_SECRET },
     fitbitEnabled: e.FITBIT_ENABLED === 'true',
+    supportEmail: e.SUPPORT_EMAIL,
   };
 }

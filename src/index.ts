@@ -10,8 +10,8 @@ import { fitbitProvider } from './providers/fitbit.js';
 import { whoopProvider } from './providers/whoop.js';
 import type { RunDeps } from './runner/runUser.js';
 import { tick } from './runner/tick.js';
-import { getBotToken } from './slack/installStore.js';
-import { slackStatusClient, type SlackStatusClient } from './slack/status.js';
+import { getBotTokenForUser } from './slack/installStore.js';
+import { teamSlackClient } from './slack/teamClient.js';
 
 const TICK_MS = 5 * 60_000;
 const METRICS_RETENTION_DAYS = 35;
@@ -21,18 +21,7 @@ const pool = createPool(cfg.databaseUrl);
 await migrate(pool);
 const log = createLogger();
 
-// The bot token arrives with the first install, so resolve it lazily on every call.
-const slack: SlackStatusClient = {
-  get: async (t) => (await client()).get(t),
-  set: async (t, s, e) => (await client()).set(t, s, e),
-  clear: async (t) => (await client()).clear(t),
-  dm: async (u, text, blocks) => (await client()).dm(u, text, blocks),
-};
-async function client() {
-  const token = await getBotToken(pool, cfg.tokenKey);
-  if (!token) throw new Error('app not installed yet');
-  return slackStatusClient(new WebClient(token));
-}
+const slack = teamSlackClient(pool, cfg.tokenKey);
 
 const deps: RunDeps & { providers: { whoop: ReturnType<typeof whoopProvider>; fitbit: ReturnType<typeof fitbitProvider> } } = {
   pool,
@@ -43,8 +32,8 @@ const deps: RunDeps & { providers: { whoop: ReturnType<typeof whoopProvider>; fi
   rng: Math.random,
   providers: { whoop: whoopProvider(cfg), fitbit: fitbitProvider(cfg, { pool }) },
   lookupTz: async (userId) => {
-    const token = await getBotToken(pool, cfg.tokenKey);
-    if (!token) throw new Error('app not installed yet');
+    const token = await getBotTokenForUser(pool, cfg.tokenKey, userId);
+    if (!token) throw new Error('workspace not installed');
     const tz = (await new WebClient(token).users.info({ user: userId })).user?.tz;
     if (!tz) throw new Error('no tz');
     return tz;
