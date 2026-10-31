@@ -26,6 +26,17 @@ Design: `docs/superpowers/specs/2026-10-31-approachability-slack-status-design.m
 5. Install the app to the workspace by visiting `${PUBLIC_BASE_URL}/slack/install`.
 6. Before inviting the team, get `docs/library-review.md` signed off.
 
+## Deploying to a single VM (e.g. Google Cloud e2-micro)
+
+1. Install Docker with the compose plugin on the VM, and add swap if it has 1 GB of RAM (the TypeScript build needs it).
+2. `git clone` this repo on the VM.
+3. Create two files next to `docker-compose.prod.yml`:
+   - `.env` with `DOMAIN` and `POSTGRES_PASSWORD`
+   - `.env.production` with the app config
+4. Start it: `docker compose -f docker-compose.prod.yml --profile localdb up -d --build` (drop `--profile localdb` when using Neon or another external Postgres).
+
+Caddy gets HTTPS certificates automatically. With no domain yet, use `<ip-with-dashes>.sslip.io`.
+
 ## Development
 
 ```bash
