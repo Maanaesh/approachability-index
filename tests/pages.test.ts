@@ -39,6 +39,7 @@ describe('public pages', () => {
     const home = await get('/');
     expect(home.body).toContain('rel="icon" href="/logo.svg"');
     expect(home.body).toContain('<img src="/logo.svg"');
+    expect(home.body).toMatch(/Twemoji.*CC-BY 4\.0/);
   });
 
   it('terms page exists', async () => {

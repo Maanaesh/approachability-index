@@ -11,7 +11,7 @@ function layout(title: string, body: string): string {
 <style>body{font-family:system-ui,sans-serif;max-width:42rem;margin:3rem auto;padding:0 1.25rem;line-height:1.6;color:#1d1c1d}
 h1{line-height:1.2}header img{width:56px;height:56px;border-radius:12px}a.btn{display:inline-block;background:#4a154b;color:#fff;padding:.7rem 1.2rem;border-radius:.5rem;text-decoration:none;font-weight:600}
 footer{margin-top:3rem;font-size:.9rem;color:#616061}</style>
-<body><header><a href="/"><img src="/logo.svg" alt="Approachability logo"></a></header>${body}<footer><a href="/">Home</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></footer></body></html>`;
+<body><header><a href="/"><img src="/logo.svg" alt="Approachability logo"></a></header>${body}<footer><a href="/">Home</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a><br>Emoji graphics: <a href="https://github.com/jdecked/twemoji">Twemoji</a>, CC-BY 4.0</footer></body></html>`;
 }
 
 export function pagesRouter(cfg: Config): Router {

@@ -47,3 +47,7 @@ LIBRARY_FULL=1 npx vitest run tests/content   # full library size check
 npx tsx scripts/sample-lines.ts 20             # sample status lines
 npx tsx scripts/tick-now.ts                    # run one scheduler tick now
 ```
+
+## Credits
+
+The logo uses emoji graphics from [Twemoji](https://github.com/jdecked/twemoji), licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).
