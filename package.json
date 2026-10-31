@@ -12,13 +12,12 @@
     "dev": "tsx src/index.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "migrate": "node-pg-migrate up -m migrations"
+    "migrate": "tsx src/db/migrate.ts"
   },
   "dependencies": {
     "@slack/bolt": "^5.1.0",
     "emoji-datasource": "^16.0.0",
     "luxon": "^3.7.2",
-    "node-pg-migrate": "^9.0.0",
     "pg": "^8.23.1",
     "zod": "^4.6.7"
   },
