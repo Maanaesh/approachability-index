@@ -60,14 +60,16 @@ export async function fetchDailyMetrics(
     if (!byDate.has(date)) byDate.set(date, { date, hrvMs: null, rhrBpm: null, minutesAsleep: null });
     return byDate.get(date)!;
   };
-  const dateRange = (field: string) => `${field}.date >= "${fromDate}" AND ${field}.date <= "${toDate}"`;
-  const sleepFrom = DateTime.fromISO(fromDate, { zone: tz }).minus({ days: 1 }).toUTC().toISO();
-  const sleepTo = DateTime.fromISO(toDate, { zone: tz }).plus({ days: 1 }).toUTC().toISO();
+  // The API only supports >= and < on dates, and sleep can only be filtered on interval.end_time (UTC).
+  const dayAfter = DateTime.fromISO(toDate).plus({ days: 1 }).toISODate();
+  const dateRange = (field: string) => `${field}.date >= "${fromDate}" AND ${field}.date < "${dayAfter}"`;
+  const utc = (d: string) => DateTime.fromISO(d, { zone: tz }).startOf('day').toUTC().toISO({ suppressMilliseconds: true });
+  const sleepFilter = `sleep.interval.end_time >= "${utc(fromDate)}" AND sleep.interval.end_time < "${utc(dayAfter!)}"`;
 
   const [hrv, rhr, sleep] = await Promise.all([
     listAll(fetchFn, accessToken, 'daily-heart-rate-variability', dateRange('daily_heart_rate_variability'), 1000),
     listAll(fetchFn, accessToken, 'daily-resting-heart-rate', dateRange('daily_resting_heart_rate'), 1000),
-    listAll(fetchFn, accessToken, 'sleep', `sleep.interval.start_time >= "${sleepFrom}" AND sleep.interval.start_time < "${sleepTo}"`, 25),
+    listAll(fetchFn, accessToken, 'sleep', sleepFilter, 25),
   ]);
 
   for (const p of hrv) {

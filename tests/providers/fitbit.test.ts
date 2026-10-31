@@ -60,8 +60,11 @@ describe('fetchDailyMetrics', () => {
       { date: '2026-11-02', hrvMs: 62.5, rhrBpm: 57, minutesAsleep: 420 },
     ]);
     const hrvCall = f.calls.find((c) => type('daily-heart-rate-variability')(c.url))!;
-    expect(hrvCall.url.searchParams.get('filter')).toBe('daily_heart_rate_variability.date >= "2026-11-01" AND daily_heart_rate_variability.date <= "2026-11-02"');
-    expect(f.calls.find((c) => type('sleep')(c.url))!.url.searchParams.get('filter')).toMatch(/^sleep\.interval\.start_time >= "/);
+    // Live API (2026-10-31): daily dates only support >= and <; sleep filters only on interval.end_time (UTC timestamps).
+    expect(hrvCall.url.searchParams.get('filter')).toBe('daily_heart_rate_variability.date >= "2026-11-01" AND daily_heart_rate_variability.date < "2026-11-03"');
+    expect(f.calls.find((c) => type('sleep')(c.url))!.url.searchParams.get('filter')).toBe(
+      'sleep.interval.end_time >= "2026-10-31T18:30:00Z" AND sleep.interval.end_time < "2026-11-02T18:30:00Z"',
+    );
     expect(f.calls.find((c) => type('sleep')(c.url))!.url.searchParams.get('pageSize')).toBe('25');
   });
 
