@@ -1,0 +1,45 @@
+# Whole words (or phrases) that must never appear in library status lines.
+# Swearing / innuendo
+damn
+hell
+crap
+sexy
+hot
+thirsty
+naughty
+# Illness / medical
+sick
+ill
+illness
+flu
+covid
+fever
+meds
+medication
+pill
+pills
+doctor
+hospital
+migraine
+headache
+hangover
+hungover
+burnout
+burnt out
+depressed
+anxiety
+dying
+dead
+# Bodies
+body
+butt
+naked
+sweaty
+# Alcohol
+beer
+wine
+drunk
+shots
+booze
+tipsy
+cocktail

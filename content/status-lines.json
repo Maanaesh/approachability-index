@@ -1,0 +1,596 @@
+{
+  "version": 1,
+  "packs": [
+    {
+      "id": "main-character",
+      "name": "Main character",
+      "emoji": "nail_care"
+    },
+    {
+      "id": "gaming",
+      "name": "Gaming",
+      "emoji": "video_game"
+    },
+    {
+      "id": "weather",
+      "name": "Weather",
+      "emoji": "partly_sunny_rain"
+    },
+    {
+      "id": "snacks",
+      "name": "Snacks",
+      "emoji": "ramen"
+    },
+    {
+      "id": "tech",
+      "name": "Tech",
+      "emoji": "computer"
+    },
+    {
+      "id": "chaotic-good",
+      "name": "Chaotic good",
+      "emoji": "flying_saucer"
+    },
+    {
+      "id": "soft",
+      "name": "Soft",
+      "emoji": "crescent_moon"
+    }
+  ],
+  "emojiPools": {
+    "high": [
+      "sparkles",
+      "zap",
+      "rocket",
+      "star2",
+      "tada",
+      "sunglasses",
+      "sunny",
+      "rainbow",
+      "dizzy",
+      "partying_face"
+    ],
+    "mid": [
+      "melting_face",
+      "saluting_face",
+      "coffee",
+      "hourglass_flowing_sand",
+      "partly_sunny",
+      "thinking_face",
+      "ocean",
+      "turtle",
+      "headphones",
+      "upside_down_face"
+    ],
+    "low": [
+      "battery",
+      "crescent_moon",
+      "cloud",
+      "tea",
+      "snail",
+      "sloth",
+      "feather",
+      "candle",
+      "low_battery",
+      "seedling"
+    ],
+    "fallback": [
+      "shrug",
+      "arrows_counterclockwise",
+      "satellite_antenna",
+      "hourglass",
+      "crystal_ball",
+      "mag",
+      "thinking_face",
+      "grey_question"
+    ]
+  },
+  "lines": [
+    {
+      "id": "main-character-high-001",
+      "pack": "main-character",
+      "band": "high",
+      "text": "main character arc unlocked"
+    },
+    {
+      "id": "main-character-high-002",
+      "pack": "main-character",
+      "band": "high",
+      "text": "it's giving productive"
+    },
+    {
+      "id": "main-character-high-003",
+      "pack": "main-character",
+      "band": "high",
+      "text": "thriving, ask me anything"
+    },
+    {
+      "id": "main-character-mid-001",
+      "pack": "main-character",
+      "band": "mid",
+      "text": "side quest energy today"
+    },
+    {
+      "id": "main-character-mid-002",
+      "pack": "main-character",
+      "band": "mid",
+      "text": "supporting role, still iconic"
+    },
+    {
+      "id": "main-character-mid-003",
+      "pack": "main-character",
+      "band": "mid",
+      "text": "serving calm, not chaos"
+    },
+    {
+      "id": "main-character-low-001",
+      "pack": "main-character",
+      "band": "low",
+      "text": "background character today, be gentle"
+    },
+    {
+      "id": "main-character-low-002",
+      "pack": "main-character",
+      "band": "low",
+      "text": "off-screen recharge in progress"
+    },
+    {
+      "id": "main-character-low-003",
+      "pack": "main-character",
+      "band": "low",
+      "text": "cameo appearances only"
+    },
+    {
+      "id": "main-character-fallback-001",
+      "pack": "main-character",
+      "band": "fallback",
+      "text": "plot twist pending"
+    },
+    {
+      "id": "main-character-fallback-002",
+      "pack": "main-character",
+      "band": "fallback",
+      "text": "script still loading"
+    },
+    {
+      "id": "main-character-fallback-003",
+      "pack": "main-character",
+      "band": "fallback",
+      "text": "awaiting my cue"
+    },
+    {
+      "id": "gaming-high-001",
+      "pack": "gaming",
+      "band": "high",
+      "text": "full health bar, send quests"
+    },
+    {
+      "id": "gaming-high-002",
+      "pack": "gaming",
+      "band": "high",
+      "text": "speedrun mode activated"
+    },
+    {
+      "id": "gaming-high-003",
+      "pack": "gaming",
+      "band": "high",
+      "text": "combo streak unlocked"
+    },
+    {
+      "id": "gaming-mid-001",
+      "pack": "gaming",
+      "band": "mid",
+      "text": "mid-level grind, async preferred"
+    },
+    {
+      "id": "gaming-mid-002",
+      "pack": "gaming",
+      "band": "mid",
+      "text": "saving progress, replies may lag"
+    },
+    {
+      "id": "gaming-mid-003",
+      "pack": "gaming",
+      "band": "mid",
+      "text": "exploring the map slowly"
+    },
+    {
+      "id": "gaming-low-001",
+      "pack": "gaming",
+      "band": "low",
+      "text": "respawning, back soon"
+    },
+    {
+      "id": "gaming-low-002",
+      "pack": "gaming",
+      "band": "low",
+      "text": "in the lobby, low ping please"
+    },
+    {
+      "id": "gaming-low-003",
+      "pack": "gaming",
+      "band": "low",
+      "text": "resting at the campfire"
+    },
+    {
+      "id": "gaming-fallback-001",
+      "pack": "gaming",
+      "band": "fallback",
+      "text": "loading next level"
+    },
+    {
+      "id": "gaming-fallback-002",
+      "pack": "gaming",
+      "band": "fallback",
+      "text": "patch notes incoming"
+    },
+    {
+      "id": "gaming-fallback-003",
+      "pack": "gaming",
+      "band": "fallback",
+      "text": "press start to continue"
+    },
+    {
+      "id": "weather-high-001",
+      "pack": "weather",
+      "band": "high",
+      "text": "sunny with a high chance of replies"
+    },
+    {
+      "id": "weather-high-002",
+      "pack": "weather",
+      "band": "high",
+      "text": "clear skies, fly on in"
+    },
+    {
+      "id": "weather-high-003",
+      "pack": "weather",
+      "band": "high",
+      "text": "heatwave of good ideas"
+    },
+    {
+      "id": "weather-mid-001",
+      "pack": "weather",
+      "band": "mid",
+      "text": "partly cloudy, chance of replies"
+    },
+    {
+      "id": "weather-mid-002",
+      "pack": "weather",
+      "band": "mid",
+      "text": "light breeze, gentle pings ok"
+    },
+    {
+      "id": "weather-mid-003",
+      "pack": "weather",
+      "band": "mid",
+      "text": "overcast but functional"
+    },
+    {
+      "id": "weather-low-001",
+      "pack": "weather",
+      "band": "low",
+      "text": "foggy morning, tread softly"
+    },
+    {
+      "id": "weather-low-002",
+      "pack": "weather",
+      "band": "low",
+      "text": "drizzle mode, slow replies"
+    },
+    {
+      "id": "weather-low-003",
+      "pack": "weather",
+      "band": "low",
+      "text": "quiet storm, async only"
+    },
+    {
+      "id": "weather-fallback-001",
+      "pack": "weather",
+      "band": "fallback",
+      "text": "forecast unavailable"
+    },
+    {
+      "id": "weather-fallback-002",
+      "pack": "weather",
+      "band": "fallback",
+      "text": "radar recalibrating"
+    },
+    {
+      "id": "weather-fallback-003",
+      "pack": "weather",
+      "band": "fallback",
+      "text": "weather balloon still rising"
+    },
+    {
+      "id": "snacks-high-001",
+      "pack": "snacks",
+      "band": "high",
+      "text": "fresh espresso shot of energy"
+    },
+    {
+      "id": "snacks-high-002",
+      "pack": "snacks",
+      "band": "high",
+      "text": "crispy and ready to chat"
+    },
+    {
+      "id": "snacks-high-003",
+      "pack": "snacks",
+      "band": "high",
+      "text": "golden toast, perfectly done"
+    },
+    {
+      "id": "snacks-mid-001",
+      "pack": "snacks",
+      "band": "mid",
+      "text": "running on vibes and oat milk"
+    },
+    {
+      "id": "snacks-mid-002",
+      "pack": "snacks",
+      "band": "mid",
+      "text": "lukewarm noodle energy"
+    },
+    {
+      "id": "snacks-mid-003",
+      "pack": "snacks",
+      "band": "mid",
+      "text": "simmering, stir gently"
+    },
+    {
+      "id": "snacks-low-001",
+      "pack": "snacks",
+      "band": "low",
+      "text": "currently a soft-boiled egg",
+      "emoji": "egg"
+    },
+    {
+      "id": "snacks-low-002",
+      "pack": "snacks",
+      "band": "low",
+      "text": "marshmallow mode, handle with care"
+    },
+    {
+      "id": "snacks-low-003",
+      "pack": "snacks",
+      "band": "low",
+      "text": "steeping like chamomile"
+    },
+    {
+      "id": "snacks-fallback-001",
+      "pack": "snacks",
+      "band": "fallback",
+      "text": "still in the oven"
+    },
+    {
+      "id": "snacks-fallback-002",
+      "pack": "snacks",
+      "band": "fallback",
+      "text": "snack status unknown"
+    },
+    {
+      "id": "snacks-fallback-003",
+      "pack": "snacks",
+      "band": "fallback",
+      "text": "microwave still humming"
+    },
+    {
+      "id": "tech-high-001",
+      "pack": "tech",
+      "band": "high",
+      "text": "brain at full bandwidth"
+    },
+    {
+      "id": "tech-high-002",
+      "pack": "tech",
+      "band": "high",
+      "text": "all systems green, deploy away"
+    },
+    {
+      "id": "tech-high-003",
+      "pack": "tech",
+      "band": "high",
+      "text": "fresh cache, fast responses"
+    },
+    {
+      "id": "tech-mid-001",
+      "pack": "tech",
+      "band": "mid",
+      "text": "lowkey buffering"
+    },
+    {
+      "id": "tech-mid-002",
+      "pack": "tech",
+      "band": "mid",
+      "text": "running in compatibility mode"
+    },
+    {
+      "id": "tech-mid-003",
+      "pack": "tech",
+      "band": "mid",
+      "text": "background sync in progress"
+    },
+    {
+      "id": "tech-low-001",
+      "pack": "tech",
+      "band": "low",
+      "text": "low power mode, be gentle pls"
+    },
+    {
+      "id": "tech-low-002",
+      "pack": "tech",
+      "band": "low",
+      "text": "updating, please do not unplug"
+    },
+    {
+      "id": "tech-low-003",
+      "pack": "tech",
+      "band": "low",
+      "text": "airplane mode adjacent"
+    },
+    {
+      "id": "tech-fallback-001",
+      "pack": "tech",
+      "band": "fallback",
+      "text": "loading personality…",
+      "emoji": "arrows_counterclockwise"
+    },
+    {
+      "id": "tech-fallback-002",
+      "pack": "tech",
+      "band": "fallback",
+      "text": "awaiting server response"
+    },
+    {
+      "id": "tech-fallback-003",
+      "pack": "tech",
+      "band": "fallback",
+      "text": "status not found, retrying"
+    },
+    {
+      "id": "chaotic-good-high-001",
+      "pack": "chaotic-good",
+      "band": "high",
+      "text": "unhinged in a productive way"
+    },
+    {
+      "id": "chaotic-good-high-002",
+      "pack": "chaotic-good",
+      "band": "high",
+      "text": "chaos harnessed, bring problems"
+    },
+    {
+      "id": "chaotic-good-high-003",
+      "pack": "chaotic-good",
+      "band": "high",
+      "text": "goblin mode but helpful"
+    },
+    {
+      "id": "chaotic-good-mid-001",
+      "pack": "chaotic-good",
+      "band": "mid",
+      "text": "vibing in the gray area"
+    },
+    {
+      "id": "chaotic-good-mid-002",
+      "pack": "chaotic-good",
+      "band": "mid",
+      "text": "controlled chaos, mostly"
+    },
+    {
+      "id": "chaotic-good-mid-003",
+      "pack": "chaotic-good",
+      "band": "mid",
+      "text": "mildly feral, fully kind"
+    },
+    {
+      "id": "chaotic-good-low-001",
+      "pack": "chaotic-good",
+      "band": "low",
+      "text": "cryptid mode, sightings rare"
+    },
+    {
+      "id": "chaotic-good-low-002",
+      "pack": "chaotic-good",
+      "band": "low",
+      "text": "hiding in the group chat bushes"
+    },
+    {
+      "id": "chaotic-good-low-003",
+      "pack": "chaotic-good",
+      "band": "low",
+      "text": "gremlin hibernation underway"
+    },
+    {
+      "id": "chaotic-good-fallback-001",
+      "pack": "chaotic-good",
+      "band": "fallback",
+      "text": "vibe pending"
+    },
+    {
+      "id": "chaotic-good-fallback-002",
+      "pack": "chaotic-good",
+      "band": "fallback",
+      "text": "the council has not decided"
+    },
+    {
+      "id": "chaotic-good-fallback-003",
+      "pack": "chaotic-good",
+      "band": "fallback",
+      "text": "consulting the magic eight ball"
+    },
+    {
+      "id": "soft-high-001",
+      "pack": "soft",
+      "band": "high",
+      "text": "glowing and approachable"
+    },
+    {
+      "id": "soft-high-002",
+      "pack": "soft",
+      "band": "high",
+      "text": "sunbeam energy, say hi"
+    },
+    {
+      "id": "soft-high-003",
+      "pack": "soft",
+      "band": "high",
+      "text": "open door, warm tea"
+    },
+    {
+      "id": "soft-mid-001",
+      "pack": "soft",
+      "band": "mid",
+      "text": "cozy but present"
+    },
+    {
+      "id": "soft-mid-002",
+      "pack": "soft",
+      "band": "mid",
+      "text": "gentle hums, small asks welcome"
+    },
+    {
+      "id": "soft-mid-003",
+      "pack": "soft",
+      "band": "mid",
+      "text": "blanket on, notifications on"
+    },
+    {
+      "id": "soft-low-001",
+      "pack": "soft",
+      "band": "low",
+      "text": "in my quiet era"
+    },
+    {
+      "id": "soft-low-002",
+      "pack": "soft",
+      "band": "low",
+      "text": "tiny candle mode"
+    },
+    {
+      "id": "soft-low-003",
+      "pack": "soft",
+      "band": "low",
+      "text": "soft hours, kind words only"
+    },
+    {
+      "id": "soft-fallback-001",
+      "pack": "soft",
+      "band": "fallback",
+      "text": "vibes unavailable, try again later"
+    },
+    {
+      "id": "soft-fallback-002",
+      "pack": "soft",
+      "band": "fallback",
+      "text": "still waking up the vibes"
+    },
+    {
+      "id": "soft-fallback-003",
+      "pack": "soft",
+      "band": "fallback",
+      "text": "mood ring warming up"
+    }
+  ]
+}
